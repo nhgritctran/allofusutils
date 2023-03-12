@@ -34,6 +34,7 @@ class Profiling:
                 jobs.append(executor.submit(profile_function,
                                             participant_dx_period,
                                             param,
+                                            "date",
                                             threshold,
                                             participant_dx_period[i, "start_date"],
                                             participant_dx_period[i, "end_date"],
