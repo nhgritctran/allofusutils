@@ -11,9 +11,10 @@ class Profiling:
     def __init__(self):
         pass
 
-    def create_param_profile(self, participant_dx_period, param, threshold, profile_type="ratio"):
+    def create_param_profile(self, participant_dx_period, epa_data, param, threshold, profile_type="ratio"):
         """
         :param participant_dx_period:
+        :param epa_data:
         :param param:
         :param threshold:
         :param profile_type:
@@ -32,7 +33,7 @@ class Profiling:
         with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
             for i in tqdm(range(len(participant_dx_period))):
                 jobs.append(executor.submit(profile_function,
-                                            participant_dx_period,
+                                            epa_data,
                                             param,
                                             "date",
                                             threshold,
