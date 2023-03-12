@@ -1,1 +1,1 @@
-# epautils
+# allofusutils - Tools for working on All of Us Researcher Workbench
