@@ -45,8 +45,8 @@ class Profiling:
         result_dicts = [job.result() for job in jobs]
 
         param_ratio_df = pl.from_dicts(result_dicts, schema={"person_id": pl.Utf8,
-                                                             "above_threshold_days": pl.Int64,
-                                                             "total_measured_days": pl.Int64,
+                                                             "above_threshold_days": pl.Float64,
+                                                             "total_measured_days": pl.Float64,
                                                              f"{param_name}_ratio": pl.Float64})
 
         final_df = participant_dx_period.join(param_ratio_df, how="inner", on="person_id")
