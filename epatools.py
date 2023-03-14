@@ -11,13 +11,14 @@ class Profiling:
     def __init__(self):
         pass
 
-    def create_param_profile(self, participant_dx_period, epa_data, param_name, aqi_threshold, profile_type="ratio"):
+    def create_param_profile(self, participant_dx_period, epa_data, param_name,
+                             aqi_threshold, profile_type="aqi_ratio"):
         """
         :param participant_dx_period: participant df containing diagnosis period
         :param epa_data: EPA df of interest
         :param param_name: environmental parameter of interest
         :param aqi_threshold: aqi threshold
-        :param profile_type: accepts "ratio"
+        :param profile_type: accepts "aqi_ratio"
         :return: original df with param aqi ratio added
         """
 
@@ -26,7 +27,7 @@ class Profiling:
             print(f"Input dataframe must have these columns: {required_cols}")
             return
 
-        if profile_type == "ratio":
+        if profile_type == "aqi_ratio":
             profile_function = self.get_aqi_ratio
 
         jobs = []
@@ -44,7 +45,9 @@ class Profiling:
         result_dicts = [job.result() for job in jobs]
 
         param_ratio_df = pl.from_dicts(result_dicts, schema={"person_id": pl.Utf8,
-                                                             f"{param_name}_aqi_ratio": pl.Float64})
+                                                             "above_threshold_days": pl.Int64,
+                                                             "total_measured_days": pl.Int64,
+                                                             f"{param_name}_ratio": pl.Float64})
 
         final_df = participant_dx_period.join(param_ratio_df, how="inner", on="person_id")
 
@@ -52,7 +55,7 @@ class Profiling:
 
     @staticmethod
     def get_aqi_ratio(param_df, param_name, date_col, aqi_threshold,
-                        start_date, end_date, zip3, person_id=None):
+                      start_date, end_date, zip3, person_id=None):
         """
         :param param_df: polars df contains data for param of interest
         :param param_name: name of param
@@ -73,13 +76,24 @@ class Profiling:
                                                           (pl.col(date_col) <= end_date))
             above_threshold_count = param_by_zip3_and_date.filter(pl.col("aqi") > aqi_threshold)
             if len(param_by_zip3_and_date) > 0:
-                param_ratio = len(above_threshold_count) / len(param_by_zip3_and_date)
+                above_threshold_days = len(above_threshold_count)
+                total_measured_days = len(param_by_zip3_and_date)
+                param_ratio = above_threshold_days / total_measured_days
             else:
+                above_threshold_days = np.nan
+                total_measured_days = np.nan
                 param_ratio = np.nan
         else:
+            above_threshold_days = np.nan
+            total_measured_days = np.nan
             param_ratio = np.nan
 
         if person_id:
-            return {"person_id": person_id, f"{param_name}_aqi_ratio": param_ratio}
+            return {"person_id": person_id,
+                    "above_threshold_days": above_threshold_days,
+                    "total_measured_days": total_measured_days,
+                    f"{param_name}_ratio": param_ratio}
         else:
-            return param_ratio
+            return {"above_threshold_days": above_threshold_days,
+                    "total_measured_days": total_measured_days,
+                    f"{param_name}_ratio": param_ratio}
