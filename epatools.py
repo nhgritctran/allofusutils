@@ -11,14 +11,14 @@ class Profiling:
     def __init__(self):
         pass
 
-    def create_param_profile(self, participant_dx_period, epa_data, param, threshold, profile_type="ratio"):
+    def create_param_profile(self, participant_dx_period, epa_data, param_name, aqi_threshold, profile_type="ratio"):
         """
-        :param participant_dx_period:
-        :param epa_data:
-        :param param:
-        :param threshold:
-        :param profile_type:
-        :return:
+        :param participant_dx_period: participant df containing diagnosis period
+        :param epa_data: EPA df of interest
+        :param param_name: environmental parameter of interest
+        :param aqi_threshold: aqi threshold
+        :param profile_type: accepts "ratio"
+        :return: original df with param aqi ratio added
         """
 
         required_cols = ["person_id", "zip3", "start_date", "end_date"]
@@ -27,16 +27,16 @@ class Profiling:
             return
 
         if profile_type == "ratio":
-            profile_function = self.get_param_ratio
+            profile_function = self.get_aqi_ratio
 
         jobs = []
         with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
             for i in tqdm(range(len(participant_dx_period))):
                 jobs.append(executor.submit(profile_function,
                                             epa_data,
-                                            param,
+                                            param_name,
                                             "date",
-                                            threshold,
+                                            aqi_threshold,
                                             participant_dx_period[i, "start_date"],
                                             participant_dx_period[i, "end_date"],
                                             participant_dx_period[i, "zip3"],
@@ -44,20 +44,20 @@ class Profiling:
         result_dicts = [job.result() for job in jobs]
 
         param_ratio_df = pl.from_dicts(result_dicts, schema={"person_id": pl.Utf8,
-                                                             f"{param}_ratio": pl.Float64})
+                                                             f"{param_name}_ratio": pl.Float64})
 
         final_df = participant_dx_period.join(param_ratio_df, how="inner", on="person_id")
 
         return final_df
 
     @staticmethod
-    def get_param_ratio(param_df, param_col, date_col, param_threshold,
+    def get_aqi_ratio(param_df, param_name, date_col, aqi_threshold,
                         start_date, end_date, zip3, person_id=None):
         """
         :param param_df: polars df contains data for param of interest
-        :param param_col: column name of param
+        :param param_name: name of param
         :param date_col: column name of date
-        :param param_threshold: threshold which is used for ratio of above threshold:total
+        :param aqi_threshold: threshold which is used for ratio of above threshold:total
         :param start_date: start date of param data
         :param end_date: end date of param data
         :param zip3: zip3 of site measured param
@@ -71,7 +71,7 @@ class Profiling:
         if len(param_by_zip3) > 0:
             param_by_zip3_and_date = param_by_zip3.filter((pl.col(date_col) >= start_date) &
                                                           (pl.col(date_col) <= end_date))
-            above_threshold_count = param_by_zip3_and_date.filter(pl.col(param_col) > param_threshold)
+            above_threshold_count = param_by_zip3_and_date.filter(pl.col("aqi") > aqi_threshold)
             if len(param_by_zip3_and_date) > 0:
                 param_ratio = len(above_threshold_count) / len(param_by_zip3_and_date)
             else:
@@ -80,6 +80,6 @@ class Profiling:
             param_ratio = np.nan
 
         if person_id:
-            return {"person_id": person_id, f"{param_col}_ratio": param_ratio}
+            return {"person_id": person_id, f"{param_name}_ratio": param_ratio}
         else:
             return param_ratio
