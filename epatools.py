@@ -44,7 +44,7 @@ class Profiling:
         result_dicts = [job.result() for job in jobs]
 
         param_ratio_df = pl.from_dicts(result_dicts, schema={"person_id": pl.Utf8,
-                                                             f"{param_name}_ratio": pl.Float64})
+                                                             f"{param_name}_aqi_ratio": pl.Float64})
 
         final_df = participant_dx_period.join(param_ratio_df, how="inner", on="person_id")
 
@@ -80,6 +80,6 @@ class Profiling:
             param_ratio = np.nan
 
         if person_id:
-            return {"person_id": person_id, f"{param_name}_ratio": param_ratio}
+            return {"person_id": person_id, f"{param_name}_aqi_ratio": param_ratio}
         else:
             return param_ratio
