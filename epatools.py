@@ -2,7 +2,6 @@ from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
 import numpy as np
-import os
 import polars as pl
 
 
@@ -30,7 +29,7 @@ class Profiling:
             profile_function = self.get_param_ratio
 
         jobs = []
-        with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+        with ThreadPoolExecutor() as executor:
             for i in tqdm(range(len(participant_dx_period))):
                 jobs.append(executor.submit(profile_function,
                                             epa_data,
