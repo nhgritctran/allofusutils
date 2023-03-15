@@ -48,7 +48,7 @@ class Profiling:
                                                              f"{param_name}_above_threshold_days": pl.Float64,
                                                              f"{param_name}_total_measured_days": pl.Float64,
                                                              f"{param_name}_data_coverage": pl.Float64,
-                                                             f"{param_name}_ratio": pl.Float64})
+                                                             f"{param_name}_above_threshold_ratio": pl.Float64})
 
         final_df = participant_dx_period.join(param_ratio_df, how="inner", on="person_id")
 
@@ -99,9 +99,9 @@ class Profiling:
                     f"{param_name}_above_threshold_days": above_threshold_days,
                     f"{param_name}_total_measured_days": total_measured_days,
                     f"{param_name}_data_coverage": data_coverage,
-                    f"{param_name}_ratio": param_ratio}
+                    f"{param_name}_above_threshold_ratio": param_ratio}
         else:
             return {f"{param_name}_above_threshold_days": above_threshold_days,
                     f"{param_name}_total_measured_days": total_measured_days,
                     f"{param_name}_data_coverage": data_coverage,
-                    f"{param_name}_ratio": param_ratio}
+                    f"{param_name}_above_threshold_ratio": param_ratio}
