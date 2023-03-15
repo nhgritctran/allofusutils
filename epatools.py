@@ -88,10 +88,12 @@ class Profiling:
             else:
                 above_threshold_days = np.nan
                 total_measured_days = np.nan
+                data_coverage = np.nan
                 param_ratio = np.nan
         else:
             above_threshold_days = np.nan
             total_measured_days = np.nan
+            data_coverage = np.nan
             param_ratio = np.nan
 
         if person_id:
