@@ -80,7 +80,7 @@ class Profiling:
             above_threshold_count = param_by_zip3_and_date.filter(pl.col("aqi") > aqi_threshold)
             if len(param_by_zip3_and_date) > 0:
                 above_threshold_days = len(above_threshold_count)
-                total_measured_days = len(param_by_zip3_and_date)
+                total_measured_days = len(param_by_zip3_and_date) - 1
                 param_ratio = above_threshold_days / total_measured_days
             else:
                 above_threshold_days = np.nan
