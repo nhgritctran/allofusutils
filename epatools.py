@@ -84,7 +84,7 @@ class Profiling:
                 above_threshold_days = len(above_threshold_count)
                 total_measured_days = len(param_by_zip3_and_date)
                 dx_days = end_date - start_date + pl.duration(days=1)
-                data_coverage = pl.duration(days=total_measured_days) / pl.duration(days=dx_days)
+                data_coverage = pl.duration(days=total_measured_days) / dx_days
                 param_ratio = above_threshold_days / total_measured_days
             else:
                 above_threshold_days = np.nan
