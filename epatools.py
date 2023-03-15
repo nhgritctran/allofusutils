@@ -74,6 +74,9 @@ class Profiling:
         if len(param_by_zip3) > 0:
             param_by_zip3_and_date = param_by_zip3.filter((pl.col(date_col) >= start_date) &
                                                           (pl.col(date_col) <= end_date))
+            # group by zip3 & date and get mean value
+            param_by_zip3_and_date = param_by_zip3_and_date.groupby([date_col, "zip3"]).mean()
+            # get rows where param value above threshold
             above_threshold_count = param_by_zip3_and_date.filter(pl.col("aqi") > aqi_threshold)
             if len(param_by_zip3_and_date) > 0:
                 above_threshold_days = len(above_threshold_count)
