@@ -45,8 +45,9 @@ class Profiling:
         result_dicts = [job.result() for job in jobs]
 
         param_ratio_df = pl.from_dicts(result_dicts, schema={"person_id": pl.Utf8,
-                                                             "above_threshold_days": pl.Float64,
-                                                             "total_measured_days": pl.Float64,
+                                                             f"{param_name}_above_threshold_days": pl.Float64,
+                                                             f"{param_name}_total_measured_days": pl.Float64,
+                                                             f"{param_name}_data_coverage": pl.Float64,
                                                              f"{param_name}_ratio": pl.Float64})
 
         final_df = participant_dx_period.join(param_ratio_df, how="inner", on="person_id")
@@ -95,12 +96,12 @@ class Profiling:
 
         if person_id:
             return {"person_id": person_id,
-                    "above_threshold_days": above_threshold_days,
-                    "total_measured_days": total_measured_days,
-                    "data_coverage": data_coverage,
+                    f"{param_name}_above_threshold_days": above_threshold_days,
+                    f"{param_name}_total_measured_days": total_measured_days,
+                    f"{param_name}_data_coverage": data_coverage,
                     f"{param_name}_ratio": param_ratio}
         else:
-            return {"above_threshold_days": above_threshold_days,
-                    "total_measured_days": total_measured_days,
-                    "data_coverage": data_coverage,
+            return {f"{param_name}_above_threshold_days": above_threshold_days,
+                    f"{param_name}_total_measured_days": total_measured_days,
+                    f"{param_name}_data_coverage": data_coverage,
                     f"{param_name}_ratio": param_ratio}
