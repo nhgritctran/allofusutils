@@ -78,9 +78,11 @@ class Profiling:
             param_by_zip3_and_date = param_by_zip3_and_date.groupby([date_col, "zip3"]).mean()
             # get rows where param value above threshold
             above_threshold_count = param_by_zip3_and_date.filter(pl.col("aqi") > aqi_threshold)
+
             if len(param_by_zip3_and_date) > 0:
                 above_threshold_days = len(above_threshold_count)
                 total_measured_days = len(param_by_zip3_and_date)
+                data_coverage = total_measured_days / (end_date - start_date + pl.duration(days=1))
                 param_ratio = above_threshold_days / total_measured_days
             else:
                 above_threshold_days = np.nan
@@ -95,8 +97,10 @@ class Profiling:
             return {"person_id": person_id,
                     "above_threshold_days": above_threshold_days,
                     "total_measured_days": total_measured_days,
+                    "data_coverage": data_coverage,
                     f"{param_name}_ratio": param_ratio}
         else:
             return {"above_threshold_days": above_threshold_days,
                     "total_measured_days": total_measured_days,
+                    "data_coverage": data_coverage,
                     f"{param_name}_ratio": param_ratio}
