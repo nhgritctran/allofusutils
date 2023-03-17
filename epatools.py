@@ -42,11 +42,12 @@ class Profiling:
         result_dicts = [job.result() for job in jobs]
 
         param_ratio_df = pl.from_dicts(result_dicts, schema={f"{param_name}_mean_aqi": pl.Float64,
-                                                             f"{param_name}_aqi_sub25_days": pl.Float64,
-                                                             f"{param_name}_aqi_sub50_days": pl.Float64,
-                                                             f"{param_name}_aqi_sub75_days": pl.Float64,
-                                                             f"{param_name}_aqi_sub100_days": pl.Float64,
-                                                             f"{param_name}_aqi_sub150_days": pl.Float64,
+                                                             f"{param_name}_aqi_0to25_days": pl.Float64,
+                                                             f"{param_name}_aqi_26to50_days": pl.Float64,
+                                                             f"{param_name}_aqi_51to75_days": pl.Float64,
+                                                             f"{param_name}_aqi_76to100_days": pl.Float64,
+                                                             f"{param_name}_aqi_101to150_days": pl.Float64,
+                                                             f"{param_name}_aqi_151plus_days": pl.Float64,
                                                              f"{param_name}_total_measured_days": pl.Float64,
                                                              f"{param_name}_data_coverage": pl.Float64,
                                                              "person_id": pl.Utf8})
@@ -72,11 +73,12 @@ class Profiling:
         param_by_zip3 = param_df.filter(pl.col("zip3") == zip3)
 
         aqi_dict = {f"{param_name}_mean_aqi": np.nan,
-                    f"{param_name}_aqi_sub25_days": np.nan,
-                    f"{param_name}_aqi_sub50_days": np.nan,
-                    f"{param_name}_aqi_sub75_days": np.nan,
-                    f"{param_name}_aqi_sub100_days": np.nan,
-                    f"{param_name}_aqi_sub150_days": np.nan,
+                    f"{param_name}_aqi_0to25_days": np.nan,
+                    f"{param_name}_aqi_26to50_days": np.nan,
+                    f"{param_name}_aqi_51to75_days": np.nan,
+                    f"{param_name}_aqi_76to100_days": np.nan,
+                    f"{param_name}_aqi_101to150_days": np.nan,
+                    f"{param_name}_aqi_151plus_days": np.nan,
                     f"{param_name}_total_measured_days": np.nan,
                     f"{param_name}_data_coverage": np.nan}
 
@@ -88,23 +90,35 @@ class Profiling:
 
             if len(param_by_zip3_and_date) > 0:
 
+                # days by thresholds
                 sub25days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 25))
                 sub50days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 50))
                 sub75days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 75))
                 sub100days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 100))
                 sub150days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 150))
-                mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
+
+                # days by bins
                 total_measured_days = len(param_by_zip3_and_date)
+                aqi26to50days = sub50days - sub25days
+                aqi51to75days = sub75days - sub50days
+                aqi76to100days = sub100days - sub75days
+                aqi101to150days = sub150days - sub100days
+                above150days = total_measured_days - sub150days
+
+                # other stats
+                mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
                 dx_days = (end_date - start_date).days + 1
                 data_coverage = total_measured_days / dx_days
 
+                # put all together
                 aqi_dict = {f"{param_name}_mean_aqi": mean_aqi,
-                            f"{param_name}_aqi_sub25_days": sub25days,
-                            f"{param_name}_aqi_sub50_days": sub50days,
-                            f"{param_name}_aqi_sub75_days": sub75days,
-                            f"{param_name}_aqi_sub100_days": sub100days,
-                            f"{param_name}_aqi_sub150_days": sub150days,
-                            f"{param_name}_total_measured_days": len(param_by_zip3_and_date),
+                            f"{param_name}_aqi_0to25_days": sub25days,
+                            f"{param_name}_aqi_26to50_days": aqi26to50days,
+                            f"{param_name}_aqi_51to75_days": aqi51to75days,
+                            f"{param_name}_aqi_76to100_days": aqi76to100days,
+                            f"{param_name}_aqi_101to150_days": aqi101to150days,
+                            f"{param_name}_aqi_151plus_days": above150days,
+                            f"{param_name}_total_measured_days": total_measured_days,
                             f"{param_name}_data_coverage": data_coverage}
 
         if person_id:
