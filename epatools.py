@@ -44,33 +44,44 @@ class Profiling:
                                             participant_dx_period[i, "person_id"]))
         result_dicts = [job.result() for job in jobs]
 
-        param_ratio_df = pl.from_dicts(result_dicts, schema={"person_id": pl.Utf8,
-                                                             f"{param_name}_above_threshold_days": pl.Float64,
+        param_ratio_df = pl.from_dicts(result_dicts, schema={f"{param_name}_mean_aqi": pl.Float64,
+                                                             f"{param_name}_aqi_sub25_days": pl.Float64,
+                                                             f"{param_name}_aqi_sub50_days": pl.Float64,
+                                                             f"{param_name}_aqi_sub75_days": pl.Float64,
+                                                             f"{param_name}_aqi_sub100_days": pl.Float64,
+                                                             f"{param_name}_aqi_sub150_days": pl.Float64,
                                                              f"{param_name}_total_measured_days": pl.Float64,
                                                              f"{param_name}_data_coverage": pl.Float64,
-                                                             f"{param_name}_above_threshold_ratio": pl.Float64})
+                                                             "person_id": pl.Utf8})
 
         final_df = participant_dx_period.join(param_ratio_df, how="inner", on="person_id")
 
         return final_df
 
     @staticmethod
-    def get_aqi_ratio(param_df, param_name, date_col, aqi_threshold,
-                      start_date, end_date, zip3, person_id=None):
+    def get_aqi(param_df, param_name, date_col,
+                start_date, end_date, zip3, person_id=None):
         """
         :param param_df: polars df contains data for param of interest
         :param param_name: name of param
         :param date_col: column name of date
-        :param aqi_threshold: threshold which is used for ratio of above threshold:total
         :param start_date: start date of param data
         :param end_date: end date of param data
         :param zip3: zip3 of site measured param
         :param person_id: defaults to None; person id of interest
-        :return: param_ratio of count above threshold:total count if no person_id provide;
-                 else {"person_id": person_id, "<param_col>_ratio": param_ratio}
+        :return: new columns with AQI related data
         """
 
         param_by_zip3 = param_df.filter(pl.col("zip3") == zip3)
+
+        aqi_dict = {f"{param_name}_mean_aqi": np.nan,
+                    f"{param_name}_aqi_sub25_days": np.nan,
+                    f"{param_name}_aqi_sub50_days": np.nan,
+                    f"{param_name}_aqi_sub75_days": np.nan,
+                    f"{param_name}_aqi_sub100_days": np.nan,
+                    f"{param_name}_aqi_sub150_days": np.nan,
+                    f"{param_name}_total_measured_days": np.nan,
+                    f"{param_name}_data_coverage": np.nan}
 
         if len(param_by_zip3) > 0:
             param_by_zip3_and_date = param_by_zip3.filter((pl.col(date_col) >= start_date) &
@@ -78,33 +89,27 @@ class Profiling:
             # group by zip3 & date and get mean value
             param_by_zip3_and_date = param_by_zip3_and_date.groupby([date_col, "zip3"]).mean()
             # get rows where param value above threshold
-            above_threshold_count = param_by_zip3_and_date.filter(pl.col("aqi") > aqi_threshold)
+            sub25days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 25))
+            sub50days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 50))
+            sub75days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 75))
+            sub100days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 100))
+            sub150days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 150))
+            mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0, 0]
 
             if len(param_by_zip3_and_date) > 0:
-                above_threshold_days = len(above_threshold_count)
                 total_measured_days = len(param_by_zip3_and_date)
                 dx_days = (end_date - start_date).days + 1
                 data_coverage = total_measured_days / dx_days
-                param_ratio = above_threshold_days / total_measured_days
-            else:
-                above_threshold_days = np.nan
-                total_measured_days = np.nan
-                data_coverage = np.nan
-                param_ratio = np.nan
-        else:
-            above_threshold_days = np.nan
-            total_measured_days = np.nan
-            data_coverage = np.nan
-            param_ratio = np.nan
+                aqi_dict = {f"{param_name}_mean_aqi": mean_aqi,
+                            f"{param_name}_aqi_sub25_days": sub25days,
+                            f"{param_name}_aqi_sub50_days": sub50days,
+                            f"{param_name}_aqi_sub75_days": sub75days,
+                            f"{param_name}_aqi_sub100_days": sub100days,
+                            f"{param_name}_aqi_sub150_days": sub150days,
+                            f"{param_name}_total_measured_days": len(param_by_zip3_and_date),
+                            f"{param_name}_data_coverage": data_coverage}
 
         if person_id:
-            return {"person_id": person_id,
-                    f"{param_name}_above_threshold_days": above_threshold_days,
-                    f"{param_name}_total_measured_days": total_measured_days,
-                    f"{param_name}_data_coverage": data_coverage,
-                    f"{param_name}_above_threshold_ratio": param_ratio}
-        else:
-            return {f"{param_name}_above_threshold_days": above_threshold_days,
-                    f"{param_name}_total_measured_days": total_measured_days,
-                    f"{param_name}_data_coverage": data_coverage,
-                    f"{param_name}_above_threshold_ratio": param_ratio}
+            aqi_dict["person_id"] = person_id
+
+        return aqi_dict
