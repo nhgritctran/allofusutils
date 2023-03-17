@@ -85,18 +85,19 @@ class Profiling:
                                                           (pl.col(date_col) <= end_date))
             # group by zip3 & date and get mean value
             param_by_zip3_and_date = param_by_zip3_and_date.groupby([date_col, "zip3"]).mean()
-            # get rows where param value above threshold
-            sub25days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 25))
-            sub50days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 50))
-            sub75days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 75))
-            sub100days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 100))
-            sub150days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 150))
-            mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
 
             if len(param_by_zip3_and_date) > 0:
+
+                sub25days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 25))
+                sub50days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 50))
+                sub75days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 75))
+                sub100days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 100))
+                sub150days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 150))
+                mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
                 total_measured_days = len(param_by_zip3_and_date)
                 dx_days = (end_date - start_date).days + 1
                 data_coverage = total_measured_days / dx_days
+
                 aqi_dict = {f"{param_name}_mean_aqi": mean_aqi,
                             f"{param_name}_aqi_sub25_days": sub25days,
                             f"{param_name}_aqi_sub50_days": sub50days,
