@@ -28,7 +28,7 @@ class Profiling:
             return
 
         if profile_type == "aqi_ratio":
-            profile_function = self.get_aqi_ratio
+            profile_function = self.get_aqi
 
         jobs = []
         with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
