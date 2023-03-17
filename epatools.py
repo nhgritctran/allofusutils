@@ -11,14 +11,12 @@ class Profiling:
     def __init__(self):
         pass
 
-    def create_epa_param_profile(self, participant_dx_period, epa_data, param_name,
-                                 aqi_threshold, profile_type="aqi_ratio"):
+    def create_epa_param_profile(self, participant_dx_period, epa_data, param_name, profile_type="aqi"):
         """
         :param participant_dx_period: participant df containing diagnosis period
         :param epa_data: EPA df of interest
         :param param_name: environmental parameter of interest
-        :param aqi_threshold: aqi threshold
-        :param profile_type: accepts "aqi_ratio"
+        :param profile_type: accepts "aqi"
         :return: original df with param aqi ratio added
         """
 
@@ -37,7 +35,6 @@ class Profiling:
                                             epa_data,
                                             param_name,
                                             "date",
-                                            aqi_threshold,
                                             participant_dx_period[i, "start_date"],
                                             participant_dx_period[i, "end_date"],
                                             participant_dx_period[i, "zip3"],
