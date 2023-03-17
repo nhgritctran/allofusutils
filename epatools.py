@@ -91,7 +91,7 @@ class Profiling:
             sub75days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 75))
             sub100days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 100))
             sub150days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 150))
-            mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0, 0]
+            mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
 
             if len(param_by_zip3_and_date) > 0:
                 total_measured_days = len(param_by_zip3_and_date)
