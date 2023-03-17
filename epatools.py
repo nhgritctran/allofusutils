@@ -25,7 +25,7 @@ class Profiling:
             print(f"Input dataframe must have these columns: {required_cols}")
             return
 
-        if profile_type == "aqi_ratio":
+        if profile_type == "aqi":
             profile_function = self.get_aqi
 
         jobs = []
