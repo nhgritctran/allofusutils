@@ -41,7 +41,8 @@ class Profiling:
                                             participant_dx_period[i, "person_id"]))
         result_dicts = [job.result() for job in jobs]
 
-        param_ratio_df = pl.from_dicts(result_dicts, schema={f"{param_name}_mean_aqi": pl.Float64,
+        param_ratio_df = pl.from_dicts(result_dicts, schema={f"{param_name}_mean_raw_value": pl.Float64,
+                                                             f"{param_name}_mean_aqi": pl.Float64,
                                                              f"{param_name}_aqi_0to25_days": pl.Float64,
                                                              f"{param_name}_aqi_26to50_days": pl.Float64,
                                                              f"{param_name}_aqi_51to75_days": pl.Float64,
@@ -72,7 +73,8 @@ class Profiling:
 
         param_by_zip3 = param_df.filter(pl.col("zip3") == zip3)
 
-        aqi_dict = {f"{param_name}_mean_aqi": np.nan,
+        aqi_dict = {f"{param_name}_mean_value": np.nan,
+                    f"{param_name}_mean_aqi": np.nan,
                     f"{param_name}_aqi_0to25_days": np.nan,
                     f"{param_name}_aqi_26to50_days": np.nan,
                     f"{param_name}_aqi_51to75_days": np.nan,
@@ -106,12 +108,16 @@ class Profiling:
                 above150days = total_measured_days - sub150days
 
                 # other stats
+                mean_raw_value = np.nan
+                if param_name != "aqi":
+                    mean_raw_value = param_by_zip3_and_date.groupby("zip3").mean()["arithmetic_mean"][0]
                 mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
                 dx_days = (end_date - start_date).days + 1
                 data_coverage = total_measured_days / dx_days
 
                 # put all together
-                aqi_dict = {f"{param_name}_mean_aqi": mean_aqi,
+                aqi_dict = {f"{param_name}_mean_raw_value": mean_raw_value,
+                            f"{param_name}_mean_aqi": mean_aqi,
                             f"{param_name}_aqi_0to25_days": sub25days,
                             f"{param_name}_aqi_26to50_days": aqi26to50days,
                             f"{param_name}_aqi_51to75_days": aqi51to75days,
