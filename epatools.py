@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
+import datetime
 import numpy as np
 import os
 import polars as pl
@@ -49,7 +50,9 @@ class Profiling:
                                                              f"{param_name}_aqi_76to100_days": pl.Float64,
                                                              f"{param_name}_aqi_101to150_days": pl.Float64,
                                                              f"{param_name}_aqi_151plus_days": pl.Float64,
+                                                             f"{param_name}_days_before_dx": pl.Float64,
                                                              f"{param_name}_total_measured_days": pl.Float64,
+                                                             f"{param_name}_total_dx_days": pl.Float64,
                                                              f"{param_name}_data_coverage": pl.Float64,
                                                              "person_id": pl.Utf8})
 
@@ -81,10 +84,19 @@ class Profiling:
                     f"{param_name}_aqi_76to100_days": np.nan,
                     f"{param_name}_aqi_101to150_days": np.nan,
                     f"{param_name}_aqi_151plus_days": np.nan,
+                    f"{param_name}_days_before_dx": np.nan,
                     f"{param_name}_total_measured_days": np.nan,
+                    f"{param_name}_total_dx_days": np.nan,
                     f"{param_name}_data_coverage": np.nan}
 
         if len(param_by_zip3) > 0:
+            # move start_date back 365 days
+            # this to ensure measurement starts 1 year ahead
+            # in case dx period is short, e.g., few days, there should still be enough measurement data
+            dx_start_date = start_date
+            start_date = start_date - datetime.timedelta(365)
+
+            # filter data
             param_by_zip3_and_date = param_by_zip3.filter((pl.col(date_col) >= start_date) &
                                                           (pl.col(date_col) <= end_date))
             # group by zip3 & date and get mean value
@@ -112,7 +124,8 @@ class Profiling:
                 if param_name != "aqi":
                     mean_raw_value = param_by_zip3_and_date.groupby("zip3").mean()["arithmetic_mean"][0]
                 mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
-                dx_days = (end_date - start_date).days + 1
+                days_before_dx = (start_date - dx_start_date).days + 1
+                dx_days = (end_date - dx_start_date).days + 1
                 data_coverage = total_measured_days / dx_days
 
                 # put all together
@@ -124,7 +137,9 @@ class Profiling:
                             f"{param_name}_aqi_76to100_days": aqi76to100days,
                             f"{param_name}_aqi_101to150_days": aqi101to150days,
                             f"{param_name}_aqi_151plus_days": above150days,
+                            f"{param_name}_days_before_dx": days_before_dx,
                             f"{param_name}_total_measured_days": total_measured_days,
+                            f"{param_name}_total_dx_days": dx_days,
                             f"{param_name}_data_coverage": data_coverage}
 
         if person_id:
