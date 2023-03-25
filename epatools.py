@@ -50,7 +50,7 @@ class Profiling:
                                                              f"{param_name}_aqi_76to100_days": pl.Float64,
                                                              f"{param_name}_aqi_101to150_days": pl.Float64,
                                                              f"{param_name}_aqi_151plus_days": pl.Float64,
-                                                             f"{param_name}_days_before_dx": pl.Float64,
+                                                             f"{param_name}_measured_days_before_dx": pl.Float64,
                                                              f"{param_name}_total_measured_days": pl.Float64,
                                                              f"{param_name}_total_dx_days": pl.Float64,
                                                              f"{param_name}_data_coverage": pl.Float64,
@@ -84,7 +84,7 @@ class Profiling:
                     f"{param_name}_aqi_76to100_days": np.nan,
                     f"{param_name}_aqi_101to150_days": np.nan,
                     f"{param_name}_aqi_151plus_days": np.nan,
-                    f"{param_name}_days_before_dx": np.nan,
+                    f"{param_name}_measured_days_before_dx": np.nan,
                     f"{param_name}_total_measured_days": np.nan,
                     f"{param_name}_total_dx_days": np.nan,
                     f"{param_name}_data_coverage": np.nan}
@@ -99,8 +99,6 @@ class Profiling:
             # filter data
             param_by_zip3_and_date = param_by_zip3.filter((pl.col(date_col) >= start_date) &
                                                           (pl.col(date_col) <= end_date))
-            # actual measurement start date
-            measurement_start_date = param_by_zip3_and_date[date_col].min()
 
             # group by zip3 & date and get mean value
             param_by_zip3_and_date = param_by_zip3_and_date.groupby([date_col, "zip3"]).mean()
@@ -127,7 +125,7 @@ class Profiling:
                 if param_name != "aqi":
                     mean_raw_value = param_by_zip3_and_date.groupby("zip3").mean()["arithmetic_mean"][0]
                 mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
-                days_before_dx = (dx_start_date - measurement_start_date).days
+                days_before_dx = len(param_by_zip3_and_date.filter(pl.col(date_col) <= dx_start_date))
                 dx_days = (end_date - dx_start_date).days + 1
                 data_coverage = total_measured_days / dx_days
 
@@ -140,7 +138,7 @@ class Profiling:
                             f"{param_name}_aqi_76to100_days": aqi76to100days,
                             f"{param_name}_aqi_101to150_days": aqi101to150days,
                             f"{param_name}_aqi_151plus_days": above150days,
-                            f"{param_name}_days_before_dx": days_before_dx,
+                            f"{param_name}_measured_days_before_dx": days_before_dx,
                             f"{param_name}_total_measured_days": total_measured_days,
                             f"{param_name}_total_dx_days": dx_days,
                             f"{param_name}_data_coverage": data_coverage}
