@@ -94,11 +94,14 @@ class Profiling:
             # this to ensure measurement starts 1 year ahead
             # in case dx period is short, e.g., few days, there should still be enough measurement data
             dx_start_date = start_date
-            start_date = start_date - datetime.timedelta(365)
+            start_date = start_date - datetime.timedelta(366)
 
             # filter data
             param_by_zip3_and_date = param_by_zip3.filter((pl.col(date_col) >= start_date) &
                                                           (pl.col(date_col) <= end_date))
+            # actual measurement start date
+            measurement_start_date = param_by_zip3_and_date[date_col].min()
+
             # group by zip3 & date and get mean value
             param_by_zip3_and_date = param_by_zip3_and_date.groupby([date_col, "zip3"]).mean()
 
@@ -124,7 +127,7 @@ class Profiling:
                 if param_name != "aqi":
                     mean_raw_value = param_by_zip3_and_date.groupby("zip3").mean()["arithmetic_mean"][0]
                 mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
-                days_before_dx = (start_date - dx_start_date).days + 1
+                days_before_dx = (dx_start_date - measurement_start_date).days + 1
                 dx_days = (end_date - dx_start_date).days + 1
                 data_coverage = total_measured_days / dx_days
 
