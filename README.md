@@ -2,4 +2,4 @@
 
 ## Tools
 ### epatools
-Extract information from Denny's lab in house EPA database.
+Extract information from Denny's lab in house EPA database. 
