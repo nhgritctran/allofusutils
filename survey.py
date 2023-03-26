@@ -28,15 +28,6 @@ class SocioEconomicStatus:
                             "Annual Income: 100k 150k": 7,
                             "Annual Income: 150k 200k": 8,
                             "Annual Income: more 200k": 9}
-        self.income_brackets = {"Annual Income: less 10k": [0.00, 9999.99],
-                                "Annual Income: 10k 25k": [10000.00, 24999.99],
-                                "Annual Income: 25k 35k": [25000.00, 34999.99],
-                                "Annual Income: 35k 50k": [35000.00, 49999.99],
-                                "Annual Income: 50k 75k": [50000.00, 74999.99],
-                                "Annual Income: 75k 100k": [75000.00, 99999.99],
-                                "Annual Income: 100k 150k": [100000.00, 149999.99],
-                                "Annual Income: 150k 200k": [150000.00, 199999.99],
-                                "Annual Income: more 200k": [200000.00, 999999.99]}
         self.edu_dict = {"Highest Grade: Never Attended": 1,
                          "Highest Grade: One Through Four": 2,
                          "Highest Grade: Five Through Eight": 3,
@@ -96,12 +87,34 @@ class SocioEconomicStatus:
         ses_data = self.aou_ses[["PERSON_ID", "MEDIAN_INCOME"]]
 
         # 2-step mapping
-        for k, v in self.income_brackets.items():
-            ses_data = ses_data.with_columns(pl.when((pl.col("MEDIAN_INCOME") >= min(v)) &
-                                                     (pl.col("MEDIAN_INCOME") <= max(v)))
-                                             .then(k)
-                                             .otherwise("no_match")
-                                             .alias("TEMP_COL"))
+        ses_data = ses_data.with_columns(pl.when((pl.col("MEDIAN_INCOME") >= 0.00) &
+                                                 (pl.col("MEDIAN_INCOME") <= 9999.99))
+                                         .then(1)
+                                         .when((pl.col("MEDIAN_INCOME") >= 10000.00) &
+                                               (pl.col("MEDIAN_INCOME") <= 24999.99))
+                                         .then(2)
+                                         .when((pl.col("MEDIAN_INCOME") >= 25000.00) &
+                                               (pl.col("MEDIAN_INCOME") <= 34999.99))
+                                         .then(3)
+                                         .when((pl.col("MEDIAN_INCOME") >= 35000.00) &
+                                               (pl.col("MEDIAN_INCOME") <= 49999.99))
+                                         .then(4)
+                                         .when((pl.col("MEDIAN_INCOME") >= 50000.00) &
+                                               (pl.col("MEDIAN_INCOME") <= 74999.99))
+                                         .then(5)
+                                         .when((pl.col("MEDIAN_INCOME") >= 75000.00) &
+                                               (pl.col("MEDIAN_INCOME") <= 99999.99))
+                                         .then(6)
+                                         .when((pl.col("MEDIAN_INCOME") >= 100000.00) &
+                                               (pl.col("MEDIAN_INCOME") <= 149999.99))
+                                         .then(7)
+                                         .when((pl.col("MEDIAN_INCOME") >= 150000.00) &
+                                               (pl.col("MEDIAN_INCOME") <= 199999.99))
+                                         .then(8)
+                                         .when((pl.col("MEDIAN_INCOME") >= 200000.00) &
+                                               (pl.col("MEDIAN_INCOME") <= 999999.99))
+                                         .then(9)
+                                         .alias("TEMP_COL"))
         for k, v in self.income_dict.items():
             ses_data = ses_data.with_columns(pl.when(pl.col("TEMP_COL") == k)
                                              .then(v)
