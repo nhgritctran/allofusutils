@@ -160,7 +160,7 @@ class SocioEconomicStatus:
         # code employment data
         survey_dict["Employment"] = self.dummy_coding(data=survey_dict["Employment"],
                                                       col_name="employment_answer",
-                                                      lookup_dict=employment_dict)
+                                                      lookup_dict=self.employment_dict)
 
         # merge data
         data = survey_dict["Income"].join(survey_dict["Education"], how="inner", on="person_id")
