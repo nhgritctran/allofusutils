@@ -9,6 +9,7 @@ class SocioEconomicStatus:
         self.cdr = cdr
 
         self.aou_ses = self.polar_gbq(f"SELECT * FROM {self.cdr}.ds_zip_code_socioeconomic")
+        self.aou_ses = self.aou_ses.with_columns(pl.col("MEDIAN_INCOME").cast(pl.Float64))
 
         if not question_id_dict:
             self.question_id_dict = {"own_or_rent": 1585370,
@@ -97,8 +98,8 @@ class SocioEconomicStatus:
 
         # 2-step mapping
         for k, v in self.income_brackets.items():
-            ses_data = ses_data.with_columns(pl.when((pl.col("MEDIAN_INCOME").cast(pl.Float64) >= pl.Float64(min(v))) &
-                                                     (pl.col("MEDIAN_INCOME").cast(pl.Float64) <= pl.Float64(max(v))))
+            ses_data = ses_data.with_columns(pl.when((pl.col("MEDIAN_INCOME") >= min(v)) &
+                                                     (pl.col("MEDIAN_INCOME") <= max(v)))
                                              .then(k)
                                              .otherwise("no_match")
                                              .alias("TEMP_COL"))
