@@ -8,7 +8,7 @@ class SocioEconomicStatus:
     def __init__(self, cdr, question_id_dict=None):
         self.cdr = cdr
 
-        self.aou_ses = polar_gbq(f"SELECT * FROM {self.cdr}.ds_zip_code_socioeconomic")
+        self.aou_ses = self.polar_gbq(f"SELECT * FROM {self.cdr}.ds_zip_code_socioeconomic")
 
         if not question_id_dict:
             self.question_id_dict = {"own_or_rent": 1585370,
