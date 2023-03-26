@@ -16,7 +16,7 @@ class SocioEconomicStatus:
                                      "employment_status": 1585952,
                                      "annual_household_income": 1585375}
         self.question_ids = tuple(self.question_id_dict.values())
-        self.survey_query = f"SELECT * FROM {self.cdr}.ds_survey WHERE question_concept_id IN {question_ids}"
+        self.survey_query = f"SELECT * FROM {self.cdr}.ds_survey WHERE question_concept_id IN {self.question_ids}"
         self.survey_data = self.polar_gbq(self.survey_query)
 
         self.income_dict = {"Annual Income: less 10k": 1,
