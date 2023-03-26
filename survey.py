@@ -117,7 +117,7 @@ class SocioEconomicStatus:
                                  .then(1)
                                  .otherwise(0)
                                  .alias("compare_with_median_income"))
-        data = data.drop("median_income_bracket")
+        # data = data.drop("median_income_bracket")
 
         return data
 
