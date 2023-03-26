@@ -105,7 +105,7 @@ class SocioEconomicStatus:
             ses_data = ses_data.with_columns(pl.when(pl.col("TEMP_COL") == k)
                                              .then(v)
                                              .alias("MEDIAN_INCOME_BRACKET"))
-        ses_data = ses_data.drop("TEMP_COL").rename({"PERSON_ID": "person_id",
+        ses_data = ses_data.rename({"PERSON_ID": "person_id",
                                                      "MEDIAN_INCOME": "median_income",
                                                      "MEDIAN_INCOME_BRACKET": "median_income_bracket"})
 
