@@ -97,21 +97,21 @@ class SocioEconomicStatus:
 
         # 2-step mapping
         for k, v in self.income_brackets.items():
-            ses_data = ses_data.with_columns(when((pl.col("MEDIAN_INCOME") >= min(v)) &
-                                          (pl.col("MEDIAN_INCOME") <= max(v)))
-                                     .then(k)
-                                     .alias("TEMP_COL"))
+            ses_data = ses_data.with_columns(pl.when((pl.col("MEDIAN_INCOME") >= min(v)) &
+                                                     (pl.col("MEDIAN_INCOME") <= max(v)))
+                                             .then(k)
+                                             .alias("TEMP_COL"))
         for k, v in self.income_dict.items():
-            ses_data = ses_data.with_columns(when(pl.col("TEMP_COL") == k)
-                                     .then(v)
-                                     .alias("MEDIAN_INCOME_BRACKET"))
+            ses_data = ses_data.with_columns(pl.when(pl.col("TEMP_COL") == k)
+                                             .then(v)
+                                             .alias("MEDIAN_INCOME_BRACKET"))
         ses_data = ses_data.drop("TEMP_COL").rename({"PERSON_ID": "person_id",
                                                      "MEDIAN_INCOME": "median_income",
                                                      "MEDIAN_INCOME_BRACKET": "median_income_bracket"})
 
         # compare income and generate
         data = data.join(ses_data, how="inner", on="person_id")
-        data = data.with_columns(when(pl.col("income") < pl.col("median_income"))
+        data = data.with_columns(pl.when(pl.col("income") < pl.col("median_income"))
                                  .then(-1)
                                  .when(pl.col("income") > pl.col("median_income"))
                                  .then(1)
