@@ -15,9 +15,6 @@ class SocioEconomicStatus:
                                      "education": 1585940,
                                      "employment_status": 1585952,
                                      "annual_household_income": 1585375}
-        self.question_ids = tuple(self.question_id_dict.values())
-        self.survey_query = f"SELECT * FROM {self.cdr}.ds_survey WHERE question_concept_id IN {self.question_ids}"
-        self.survey_data = self.polar_gbq(self.survey_query)
 
         self.income_dict = {"Annual Income: less 10k": 1,
                             "Annual Income: 10k 25k": 2,
@@ -47,6 +44,9 @@ class SocioEconomicStatus:
                                 "Employment Status: Self Employed": "self_employed",
                                 "Employment Status: Student": "student"}
         # "Employment Status: Unable To Work" are those with zero in all other categories
+        self.smoking_dict = {"Smoke Frequency: Every Day": "smoking_every_day",
+                             "Smoke Frequency: Some Days": "smoking_some_days"}
+        # "Not At All" are those with zero in all other categories
 
     @staticmethod
     def polar_gbq(query):
@@ -80,7 +80,7 @@ class SocioEconomicStatus:
 
     def compare_with_median_income(self, data):
         """
-
+        convert area median income to equivalent income bracket and then compare with participant's income bracket
         :param data:
         :return:
         """
@@ -127,17 +127,24 @@ class SocioEconomicStatus:
 
         return data
 
-    def parse_survey_data(self):
+    def parse_survey_data(self, smoking=False):
         """
+        get survey data of certain questions
+        :return: polars dataframe with coded answers
+        """
+        if smoking:
+            self.question_id_dict["smoking_frequency"] = 1585860
+        question_ids = tuple(self.question_id_dict.values())
 
-        :return:
-        """
+        survey_query = f"SELECT * FROM {self.cdr}.ds_survey WHERE question_concept_id IN {question_ids}"
+        survey_data = self.polar_gbq(survey_query)
+
         # filter out people without survey answer, e.g., skip, don't know, prefer not to answer
-        no_answer_ids = self.survey_data.filter(pl.col("answer").str.contains("PMI"))["person_id"].unique().to_list()
-        survey_data = self.survey_data.filter(~pl.col("person_id").is_in(no_answer_ids))
+        no_answer_ids = survey_data.filter(pl.col("answer").str.contains("PMI"))["person_id"].unique().to_list()
+        survey_data = survey_data.filter(~pl.col("person_id").is_in(no_answer_ids))
 
         # split survey data into separate data by question
-        question_list = self.survey_data["question"].unique().to_list()
+        question_list = survey_data["question"].unique().to_list()
         survey_dict = {}
         for question in question_list:
             key_name = question.split(":")[0].split(" ")[0]
@@ -168,9 +175,17 @@ class SocioEconomicStatus:
                                                       col_name="employment_answer",
                                                       lookup_dict=self.employment_dict)
 
+        # code smoking data
+        if smoking:
+            survey_dict["Smoking"] = self.dummy_coding(data=survey_dict["Smoking"],
+                                                       col_name="smoking_answer",
+                                                       lookup_dict=self.smoking_dict)
+
         # merge data
         data = survey_dict["Income"].join(survey_dict["Education"], how="inner", on="person_id")
         data = data.join(survey_dict["Home"], how="inner", on="person_id")
         data = data.join(survey_dict["Employment"], how="inner", on="person_id")
+        if smoking:
+            data = data.join(survey_dict["Smoking"], how="inner", on="person_id")
 
         return data
