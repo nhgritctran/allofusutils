@@ -97,8 +97,8 @@ class SocioEconomicStatus:
 
         # 2-step mapping
         for k, v in self.income_brackets.items():
-            ses_data = ses_data.with_columns(pl.when((pl.col("MEDIAN_INCOME") >= min(v)) &
-                                                     (pl.col("MEDIAN_INCOME") <= max(v)))
+            ses_data = ses_data.with_columns(pl.when((pl.col("MEDIAN_INCOME").cast(pl.Float64) >= min(v)) &
+                                                     (pl.col("MEDIAN_INCOME").cast(pl.Float64) <= max(v)))
                                              .then(k)
                                              .otherwise("no_match")
                                              .alias("TEMP_COL"))
