@@ -111,9 +111,9 @@ class SocioEconomicStatus:
 
         # compare income and generate
         data = data.join(ses_data, how="inner", on="person_id")
-        data = data.with_columns(pl.when(pl.col("income") < pl.col("median_income"))
+        data = data.with_columns(pl.when(pl.col("income") < pl.col("median_income_bracket"))
                                  .then(-1)
-                                 .when(pl.col("income") > pl.col("median_income"))
+                                 .when(pl.col("income") > pl.col("median_income_bracket"))
                                  .then(1)
                                  .otherwise(0)
                                  .alias("compare_with_median_income"))
