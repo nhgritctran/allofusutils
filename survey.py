@@ -123,12 +123,12 @@ class SocioEconomicStatus:
                                          .when((pl.col("MEDIAN_INCOME") >= 200000.00) &
                                                (pl.col("MEDIAN_INCOME") <= 999999.99))
                                          .then(9)
-                                         .alias("TEMP_COL"))
+                                         .alias("MEDIAN_INCOME_BRACKET"))
 
-        for k, v in self.income_dict.items():
-            ses_data = ses_data.with_columns(pl.when(pl.col("TEMP_COL") == k)
-                                             .then(v)
-                                             .alias("MEDIAN_INCOME_BRACKET"))
+        # for k, v in self.income_dict.items():
+        #     ses_data = ses_data.with_columns(pl.when(pl.col("TEMP_COL") == k)
+        #                                      .then(v)
+        #                                      .alias("MEDIAN_INCOME_BRACKET"))
         ses_data = ses_data.rename({"PERSON_ID": "person_id",
                                                      "MEDIAN_INCOME": "median_income",
                                                      "MEDIAN_INCOME_BRACKET": "median_income_bracket"})
