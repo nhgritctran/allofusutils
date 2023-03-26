@@ -100,6 +100,7 @@ class SocioEconomicStatus:
             ses_data = ses_data.with_columns(pl.when((pl.col("MEDIAN_INCOME") >= min(v)) &
                                                      (pl.col("MEDIAN_INCOME") <= max(v)))
                                              .then(k)
+                                             .otherwise("no_match")
                                              .alias("TEMP_COL"))
         for k, v in self.income_dict.items():
             ses_data = ses_data.with_columns(pl.when(pl.col("TEMP_COL") == k)
