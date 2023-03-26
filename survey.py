@@ -130,6 +130,7 @@ class SocioEconomicStatus:
     def parse_survey_data(self, smoking=False):
         """
         get survey data of certain questions
+        :param smoking: defaults to False; if true, data on smoking frequency is added
         :return: polars dataframe with coded answers
         """
         if smoking:
