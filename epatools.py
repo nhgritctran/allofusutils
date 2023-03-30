@@ -52,7 +52,7 @@ class Profiling:
                                                              f"{param_name}_aqi_76to100_days": pl.Float64,
                                                              f"{param_name}_aqi_101to150_days": pl.Float64,
                                                              f"{param_name}_aqi_151plus_days": pl.Float64,
-                                                             f"{param_name}_first_measured_date": pl.Float64,
+                                                             f"{param_name}_first_measured_date": pl.Date,
                                                              f"{param_name}_measured_days_before_dx": pl.Float64,
                                                              f"{param_name}_total_measured_days": pl.Float64,
                                                              f"{param_name}_total_dx_days": pl.Float64,
