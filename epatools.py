@@ -113,10 +113,12 @@ class Profiling:
             param_by_zip3_and_date = param_by_zip3.filter((pl.col(date_col) >= start_date) &
                                                           (pl.col(date_col) <= end_date))
 
-            # group by zip3 & date and get mean value
-            param_by_zip3_and_date = param_by_zip3_and_date.groupby([date_col, "zip3"]).mean()
-
             if len(param_by_zip3_and_date) > 0:
+                # get first measured_date before grouping
+                first_measured_date = param_by_zip3_and_date[date_col].min()
+
+                # group by zip3 & date and get mean value
+                param_by_zip3_and_date = param_by_zip3_and_date.groupby([date_col, "zip3"]).mean()
 
                 # days by thresholds
                 sub25days = len(param_by_zip3_and_date.filter(pl.col("aqi") <= 25))
@@ -138,7 +140,6 @@ class Profiling:
                 if param_name != "aqi":
                     mean_raw_value = param_by_zip3_and_date.groupby("zip3").mean()["arithmetic_mean"][0]
                 mean_aqi = param_by_zip3_and_date.groupby("zip3").mean()["aqi"][0]
-                first_measured_date = param_by_zip3_and_date[date_col].min()
                 days_before_dx = len(param_by_zip3_and_date.filter(pl.col(date_col) <= dx_start_date))
                 dx_days = (end_date - dx_start_date).days + 1
                 data_coverage = total_measured_days / dx_days
