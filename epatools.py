@@ -107,7 +107,7 @@ class Profiling:
             # this to ensure measurement starts 1 year ahead
             # in case dx period is short, e.g., few days, there should still be enough measurement data
             dx_start_date = start_date
-            start_date = start_date - datetime.timedelta(365)
+            start_date = start_date - datetime.timedelta(1000)
 
             # filter data
             param_by_zip3_and_date = param_by_zip3.filter((pl.col(date_col) >= start_date) &
