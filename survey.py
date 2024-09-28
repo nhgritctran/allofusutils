@@ -200,7 +200,7 @@ class SocioEconomicStatus:
         data = self.split_string(df=data, col="home_answer", split_by=": ", item_index=1)
         data = self.split_string(df=data, col="employment_answer", split_by=": ", item_index=1)
 
-        data.rename(
+        data = data.rename(
             {
                 "income_answer": "annual income",
                 "education_answer": "highest degree",
