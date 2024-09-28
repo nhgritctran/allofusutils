@@ -127,6 +127,12 @@ class SocioEconomicStatus:
 
         return data
 
+    def split_string(self, df, col, split_by, item_index):
+        
+        df = df.with_columns((pl.col(col).str.split(split_by).list[item_index]).alias(col))
+        
+        return df
+
     def parse_survey_data(self, smoking=False):
         """
         get survey data of certain questions
@@ -154,15 +160,15 @@ class SocioEconomicStatus:
             survey_dict[key_name] = survey_dict[key_name].rename({"answer": f"{key_name.lower()}_answer"})
 
         # code income data
-        survey_dict["Income"] = survey_dict["Income"].with_columns(pl.col("income_answer").alias("income"))
-        survey_dict["Income"] = survey_dict["Income"].with_columns(pl.col("income")
+        survey_dict["Income"] = survey_dict["Income"].with_columns(pl.col("income_answer").alias("income_bracket"))
+        survey_dict["Income"] = survey_dict["Income"].with_columns(pl.col("income_bracket")
                                                                    .map_dict(self.income_dict, default=pl.first())
                                                                    .cast(pl.Int64))
         survey_dict["Income"] = self.compare_with_median_income(survey_dict["Income"])
 
         # code education data
-        survey_dict["Education"] = survey_dict["Education"].with_columns(pl.col("education_answer").alias("education"))
-        survey_dict["Education"] = survey_dict["Education"].with_columns(pl.col("education")
+        survey_dict["Education"] = survey_dict["Education"].with_columns(pl.col("education_answer").alias("education_bracket"))
+        survey_dict["Education"] = survey_dict["Education"].with_columns(pl.col("education_bracket")
                                                                          .map_dict(self.edu_dict, default=pl.first())
                                                                          .cast(pl.Int64))
 
@@ -179,7 +185,7 @@ class SocioEconomicStatus:
         # code smoking data
         if smoking:
             survey_dict["Smoking"] = self.dummy_coding(data=survey_dict["Smoking"],
-                                                       col_name="smoking_answer",
+                                                       col_name="smoking_status",
                                                        lookup_dict=self.smoking_dict)
 
         # merge data
@@ -189,4 +195,18 @@ class SocioEconomicStatus:
         if smoking:
             data = data.join(survey_dict["Smoking"], how="inner", on="person_id")
 
+        data = split_string(df=data, col="income_answer", split_by=": ", item_index=1)
+        data = split_string(df=data, col="education_answer", split_by=": ", item_index=1)
+        data = split_string(df=data, col="home_answer", split_by=": ", item_index=1)
+        data = split_string(df=data, col="employment_answer", split_by=": ", item_index=1)
+
+        data.rename(
+            {
+                "income_answer": "annual income",
+                "education_answer": "highest degree",
+                "home_answer": "homeownership",
+                "employment_answer": "employment status"
+            }
+        )
+        
         return data
