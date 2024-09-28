@@ -121,7 +121,7 @@ class SocioEconomicStatus:
 
         # compare income and generate
         data = data.join(ses_data, how="inner", on="person_id")
-        data = data.with_columns((pl.col("income") - pl.col("median_income_bracket"))
+        data = data.with_columns((pl.col("income_bracket") - pl.col("median_income_bracket"))
                                  .alias("compare_to_median_income"))
         # data = data.drop("median_income_bracket")
 
@@ -195,10 +195,10 @@ class SocioEconomicStatus:
         if smoking:
             data = data.join(survey_dict["Smoking"], how="inner", on="person_id")
 
-        data = split_string(df=data, col="income_answer", split_by=": ", item_index=1)
-        data = split_string(df=data, col="education_answer", split_by=": ", item_index=1)
-        data = split_string(df=data, col="home_answer", split_by=": ", item_index=1)
-        data = split_string(df=data, col="employment_answer", split_by=": ", item_index=1)
+        data = self.split_string(df=data, col="income_answer", split_by=": ", item_index=1)
+        data = self.split_string(df=data, col="education_answer", split_by=": ", item_index=1)
+        data = self.split_string(df=data, col="home_answer", split_by=": ", item_index=1)
+        data = self.split_string(df=data, col="employment_answer", split_by=": ", item_index=1)
 
         data.rename(
             {
