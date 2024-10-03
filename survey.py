@@ -162,14 +162,14 @@ class SocioEconomicStatus:
         # code income data
         survey_dict["Income"] = survey_dict["Income"].with_columns(pl.col("income_answer").alias("income_bracket"))
         survey_dict["Income"] = survey_dict["Income"].with_columns(pl.col("income_bracket")
-                                                                   .map_dict(self.income_dict, default=pl.first())
+                                                                   .replace(self.income_dict, default=pl.first())
                                                                    .cast(pl.Int64))
         survey_dict["Income"] = self.compare_with_median_income(survey_dict["Income"])
 
         # code education data
         survey_dict["Education"] = survey_dict["Education"].with_columns(pl.col("education_answer").alias("education_bracket"))
         survey_dict["Education"] = survey_dict["Education"].with_columns(pl.col("education_bracket")
-                                                                         .map_dict(self.edu_dict, default=pl.first())
+                                                                         .replace(self.edu_dict, default=pl.first())
                                                                          .cast(pl.Int64))
 
         # code home own data
